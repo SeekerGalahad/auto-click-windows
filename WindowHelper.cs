@@ -77,11 +77,17 @@ namespace AutoClickTool
             public int Bottom;
         }
 
+        [DllImport("user32.dll")]
+        public static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
+        
+        /// <summary>
+        /// 坐标结构
+        /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct POINT
         {
-            public int X;
-            public int Y;
+            public int x;
+            public int y;
         }
 
         // 鼠标事件标志
@@ -339,12 +345,12 @@ namespace AutoClickTool
             GetCursorPos(out currentMousePos);
             
             // 将窗口坐标转换为屏幕坐标
-            POINT point = new POINT { X = x, Y = y };
+            POINT point = new POINT { x = x, y = y };
             ClientToScreen(hWnd, ref point);
             
             // 记录当前鼠标位置，以便操作后恢复（可选）
-            int originalX = currentMousePos.X;
-            int originalY = currentMousePos.Y;
+            int originalX = currentMousePos.x;
+            int originalY = currentMousePos.y;
 
             // 确保窗口是前台窗口
             if (!IsWindowForeground(hWnd))
@@ -372,7 +378,7 @@ namespace AutoClickTool
             GetCursorPos(out currentMousePos);
 
             // 强制移动鼠标到目标位置，确保每次点击都在正确的坐标上
-            SetCursorPos(point.X, point.Y);
+            SetCursorPos(point.x, point.y);
             
             // 等待鼠标移动完成
             Thread.Sleep(100);
@@ -382,55 +388,55 @@ namespace AutoClickTool
             {
                 case ClickType.LeftClick:
                     // 再次确认鼠标位置
-                    SetCursorPos(point.X, point.Y);
+                    SetCursorPos(point.x, point.y);
                     Thread.Sleep(50);
                     
-                    mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, point.X, point.Y, 0, 0);
+                    mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, point.x, point.y, 0, 0);
                     Thread.Sleep(50);
-                    mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, point.X, point.Y, 0, 0);
+                    mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, point.x, point.y, 0, 0);
                     break;
 
                 case ClickType.LeftDoubleClick:
                     // 再次确认鼠标位置
-                    SetCursorPos(point.X, point.Y);
+                    SetCursorPos(point.x, point.y);
                     Thread.Sleep(50);
                     
                     // 第一次点击
-                    mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, point.X, point.Y, 0, 0);
+                    mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, point.x, point.y, 0, 0);
                     Thread.Sleep(50);
-                    mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, point.X, point.Y, 0, 0);
+                    mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, point.x, point.y, 0, 0);
                     
                     // 短暂延迟
                     Thread.Sleep(100);
                     
                     // 再次确认鼠标位置，确保双击时鼠标没有移动
-                    SetCursorPos(point.X, point.Y);
+                    SetCursorPos(point.x, point.y);
                     Thread.Sleep(50);
                     
                     // 第二次点击
-                    mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, point.X, point.Y, 0, 0);
+                    mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, point.x, point.y, 0, 0);
                     Thread.Sleep(50);
-                    mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, point.X, point.Y, 0, 0);
+                    mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, point.x, point.y, 0, 0);
                     break;
 
                 case ClickType.RightClick:
                     // 再次确认鼠标位置
-                    SetCursorPos(point.X, point.Y);
+                    SetCursorPos(point.x, point.y);
                     Thread.Sleep(50);
                     
-                    mouse_event(MOUSEEVENTF_RIGHTDOWN | MOUSEEVENTF_ABSOLUTE, point.X, point.Y, 0, 0);
+                    mouse_event(MOUSEEVENTF_RIGHTDOWN | MOUSEEVENTF_ABSOLUTE, point.x, point.y, 0, 0);
                     Thread.Sleep(50);
-                    mouse_event(MOUSEEVENTF_RIGHTUP | MOUSEEVENTF_ABSOLUTE, point.X, point.Y, 0, 0);
+                    mouse_event(MOUSEEVENTF_RIGHTUP | MOUSEEVENTF_ABSOLUTE, point.x, point.y, 0, 0);
                     break;
                     
                 case ClickType.MiddleClick:
                     // 再次确认鼠标位置
-                    SetCursorPos(point.X, point.Y);
+                    SetCursorPos(point.x, point.y);
                     Thread.Sleep(50);
                     
-                    mouse_event(MOUSEEVENTF_MIDDLEDOWN | MOUSEEVENTF_ABSOLUTE, point.X, point.Y, 0, 0);
+                    mouse_event(MOUSEEVENTF_MIDDLEDOWN | MOUSEEVENTF_ABSOLUTE, point.x, point.y, 0, 0);
                     Thread.Sleep(50);
-                    mouse_event(MOUSEEVENTF_MIDDLEUP | MOUSEEVENTF_ABSOLUTE, point.X, point.Y, 0, 0);
+                    mouse_event(MOUSEEVENTF_MIDDLEUP | MOUSEEVENTF_ABSOLUTE, point.x, point.y, 0, 0);
                     break;
             }
             
@@ -453,18 +459,18 @@ namespace AutoClickTool
             GetCursorPos(out currentMousePos);
             
             // 将窗口坐标转换为屏幕坐标
-            POINT point = new POINT { X = x, Y = y };
+            POINT point = new POINT { x = x, y = y };
             ClientToScreen(hWnd, ref point);
             
             // 记录当前鼠标位置，以便操作后恢复（可选）
-            int originalX = currentMousePos.X;
-            int originalY = currentMousePos.Y;
+            int originalX = currentMousePos.x;
+            int originalY = currentMousePos.y;
             
             // 再次获取当前鼠标位置，确保获取最新位置
             GetCursorPos(out currentMousePos);
             
             // 强制移动鼠标到目标位置，确保每次点击都在正确的坐标上
-            SetCursorPos(point.X, point.Y);
+            SetCursorPos(point.x, point.y);
             
             // 等待鼠标移动完成
             Thread.Sleep(100);
@@ -477,7 +483,7 @@ namespace AutoClickTool
             {
                 case ClickType.LeftClick:
                     // 再次确认鼠标位置
-                    SetCursorPos(point.X, point.Y);
+                    SetCursorPos(point.x, point.y);
                     Thread.Sleep(50);
                     
                     // 发送鼠标按下和抬起消息
@@ -488,7 +494,7 @@ namespace AutoClickTool
 
                 case ClickType.LeftDoubleClick:
                     // 再次确认鼠标位置
-                    SetCursorPos(point.X, point.Y);
+                    SetCursorPos(point.x, point.y);
                     Thread.Sleep(50);
                     
                     // 发送双击消息
@@ -498,7 +504,7 @@ namespace AutoClickTool
                     Thread.Sleep(50);
                     
                     // 再次确认鼠标位置，确保双击时鼠标没有移动
-                    SetCursorPos(point.X, point.Y);
+                    SetCursorPos(point.x, point.y);
                     Thread.Sleep(50);
                     
                     SendMessage(hWnd, WM_LBUTTONDBLCLK, IntPtr.Zero, lParam);
@@ -508,7 +514,7 @@ namespace AutoClickTool
 
                 case ClickType.RightClick:
                     // 再次确认鼠标位置
-                    SetCursorPos(point.X, point.Y);
+                    SetCursorPos(point.x, point.y);
                     Thread.Sleep(50);
                     
                     // 发送右键按下和抬起消息
@@ -519,7 +525,7 @@ namespace AutoClickTool
                     
                 case ClickType.MiddleClick:
                     // 再次确认鼠标位置
-                    SetCursorPos(point.X, point.Y);
+                    SetCursorPos(point.x, point.y);
                     Thread.Sleep(50);
                     
                     // 发送中键按下和抬起消息
@@ -560,5 +566,77 @@ namespace AutoClickTool
         {
             return hWnd != IntPtr.Zero && IsWindow(hWnd);
         }
+
+        /// <summary>
+        /// 获取任务管理器中的进程列表和对应的窗口信息
+        /// </summary>
+        /// <returns>窗口信息列表</returns>
+        public static List<WindowInfo> GetTaskManagerProcessWindows()
+        {
+            List<WindowInfo> windowInfos = new List<WindowInfo>();
+            Process[] processes = Process.GetProcesses();
+
+            foreach (Process process in processes)
+            {
+                try
+                {
+                    // 跳过没有窗口的进程
+                    if (process.MainWindowHandle == IntPtr.Zero)
+                        continue;
+
+                    WindowInfo windowInfo = new WindowInfo
+                    {
+                        Handle = process.MainWindowHandle,
+                        Title = process.MainWindowTitle,
+                        ProcessName = process.ProcessName,
+                        ProcessId = process.Id,
+                        IsVisible = IsWindowVisible(process.MainWindowHandle)
+                    };
+
+                    // 获取窗口类名
+                    StringBuilder className = new StringBuilder(256);
+                    GetClassName(process.MainWindowHandle, className, className.Capacity);
+                    windowInfo.ClassName = className.ToString();
+
+                    // 只添加可见且有标题的窗口
+                    if (windowInfo.IsVisible && !string.IsNullOrEmpty(windowInfo.Title))
+                    {
+                        windowInfos.Add(windowInfo);
+                    }
+                }
+                catch
+                {
+                    // 忽略无法访问的进程
+                }
+            }
+
+            return windowInfos;
+        }
+
+        // 添加用于获取类名的API
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+        
+        /// <summary>
+        /// 获取指定坐标处的窗口句柄
+        /// </summary>
+        /// <param name="x">屏幕X坐标</param>
+        /// <param name="y">屏幕Y坐标</param>
+        /// <returns>窗口句柄</returns>
+        [DllImport("user32.dll")]
+        public static extern IntPtr WindowFromPoint(int x, int y);
+    }
+
+    /// <summary>
+    /// 窗口信息类，存储窗口的基本信息
+    /// </summary>
+    public class WindowInfo
+    {
+        public IntPtr Handle { get; set; }
+        public string Title { get; set; }
+        public string ProcessName { get; set; }
+        public int ProcessId { get; set; }
+        public string ClassName { get; set; }
+        public bool IsVisible { get; set; }
     }
 }

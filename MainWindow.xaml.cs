@@ -30,6 +30,13 @@ namespace AutoClickTool
         // 窗口标题列表
         private List<string> _windowTitles;
 
+        // 基准分辨率
+        private int _baseWidth;
+        private int _baseHeight;
+
+        // 鼠标录制器
+        private MouseRecorder _recorder;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -49,6 +56,9 @@ namespace AutoClickTool
             {
                 ResolutionComboBox.SelectedIndex = 0;
             }
+            
+            // 设置"设置基准分辨率"按钮的点击事件
+            SetBaseResolutionButton.Click += SetBaseResolutionButton_Click;
         }
 
         #region 窗口操作
@@ -74,7 +84,48 @@ namespace AutoClickTool
         private void RefreshWindowsButton_Click(object sender, RoutedEventArgs e)
         {
             LoadWindowTitles();
-            MessageBox.Show("窗口列表已刷新", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+            
+            // 自动查找任务管理器窗口
+            if (_windowTitles != null && _windowTitles.Count > 0)
+            {
+                string taskManagerTitle = _windowTitles.FirstOrDefault(t => 
+                    t.Contains("任务管理器") || 
+                    t.Contains("Task Manager") || 
+                    t.ToLower().Contains("taskmgr"));
+                
+                if (!string.IsNullOrEmpty(taskManagerTitle))
+                {
+                    WindowTitleTextBox.Text = taskManagerTitle;
+                    
+                    // 获取窗口句柄
+                    _targetWindowHandle = WindowHelper.GetWindowHandle(taskManagerTitle);
+                    if (_targetWindowHandle != IntPtr.Zero)
+                    {
+                        // 获取窗口的实际分辨率
+                        Size windowSize = WindowHelper.GetWindowSize(_targetWindowHandle);
+                        string actualResolution = $"{(int)windowSize.Width}x{(int)windowSize.Height}";
+                        ResolutionComboBox.Text = actualResolution;
+                        
+                        // 更新基准分辨率
+                        _baseWidth = (int)windowSize.Width;
+                        _baseHeight = (int)windowSize.Height;
+                        
+                        MessageBox.Show($"已自动选择任务管理器窗口，分辨率: {actualResolution}", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("已自动选择任务管理器窗口，但无法获取窗口句柄", "警告", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("窗口列表已刷新，未找到任务管理器窗口", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            else
+            {
+                MessageBox.Show("窗口列表已刷新", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         /// <summary>
@@ -97,67 +148,90 @@ namespace AutoClickTool
                 return;
             }
 
-            // 获取期望分辨率
-            string expectedResolution;
+            // 获取窗口的实际分辨率
+            Size windowSize = WindowHelper.GetWindowSize(_targetWindowHandle);
+            string actualResolution = $"{(int)windowSize.Width}x{(int)windowSize.Height}";
             
-            // 如果是直接输入的自定义分辨率
-            if (ResolutionComboBox.SelectedItem == null)
-            {
-                expectedResolution = ResolutionComboBox.Text.Trim();
-                if (string.IsNullOrEmpty(expectedResolution))
-                {
-                    MessageBox.Show("请输入或选择分辨率", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                
-                // 验证格式是否正确
-                if (!IsValidResolutionFormat(expectedResolution))
-                {
-                    MessageBox.Show("分辨率格式不正确，请使用如 1920x1080 的格式", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-            }
-            // 如果是选择的预设分辨率
-            else
-            {
-                ComboBoxItem selectedItem = ResolutionComboBox.SelectedItem as ComboBoxItem;
-                expectedResolution = selectedItem.Content.ToString();
-            }
-
-            // 验证分辨率
-            bool isValid = WindowHelper.VerifyWindowResolution(_targetWindowHandle, expectedResolution);
-            if (isValid)
-            {
-                MessageBox.Show("窗口分辨率验证通过", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            else
-            {
-                Size size = WindowHelper.GetWindowSize(_targetWindowHandle);
-                MessageBox.Show($"窗口分辨率不符合要求，当前分辨率: {size.Width}x{size.Height}，期望分辨率: {expectedResolution}", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
-                _targetWindowHandle = IntPtr.Zero;
-            }
+            // 自动填充窗口的实际分辨率
+            ResolutionComboBox.Text = actualResolution;
+            
+            // 更新基准分辨率
+            _baseWidth = (int)windowSize.Width;
+            _baseHeight = (int)windowSize.Height;
+            
+            MessageBox.Show($"已获取窗口实际分辨率: {actualResolution}\n已设置为基准分辨率", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         /// <summary>
-        /// 验证分辨率格式是否正确
+        /// 设置当前分辨率为基准按钮点击事件
         /// </summary>
-        /// <param name="resolution">分辨率字符串</param>
-        /// <returns>是否为有效格式</returns>
-        private bool IsValidResolutionFormat(string resolution)
+        private void SetBaseResolutionButton_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(resolution))
-                return false;
-                
-            // 检查格式是否为 数字x数字
-            string[] parts = resolution.Split('x');
-            if (parts.Length != 2)
-                return false;
-                
-            // 验证宽度和高度是否为有效的正整数
-            return int.TryParse(parts[0], out int width) && width > 0 &&
-                   int.TryParse(parts[1], out int height) && height > 0;
+            if (_targetWindowHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("请先选择目标窗口", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            Size windowSize = WindowHelper.GetWindowSize(_targetWindowHandle);
+            if (windowSize.Width <= 0 || windowSize.Height <= 0)
+            {
+                MessageBox.Show("无法获取窗口尺寸", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            _baseWidth = (int)windowSize.Width;
+            _baseHeight = (int)windowSize.Height;
+
+            // 更新所有步骤的基准分辨率
+            foreach (var step in _steps)
+            {
+                step.BaseWidth = _baseWidth;
+                step.BaseHeight = _baseHeight;
+                step.UpdatePercentages();
+            }
+
+            MessageBox.Show($"已设置基准分辨率为: {_baseWidth}x{_baseHeight}", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-        
+
+        /// <summary>
+        /// 查看进程列表按钮点击事件
+        /// </summary>
+        private void ShowProcessListButton_Click(object sender, RoutedEventArgs e)
+        {
+            var processListWindow = new ProcessListWindow();
+            processListWindow.Owner = this;
+            
+            if (processListWindow.ShowDialog() == true && processListWindow.SelectedWindow != null)
+            {
+                // 设置窗口标题
+                WindowTitleTextBox.Text = processListWindow.SelectedWindow.Title;
+                
+                // 获取窗口句柄
+                _targetWindowHandle = processListWindow.SelectedWindow.Handle;
+                if (_targetWindowHandle != IntPtr.Zero)
+                {
+                    // 获取窗口的实际分辨率
+                    Size windowSize = WindowHelper.GetWindowSize(_targetWindowHandle);
+                    string actualResolution = $"{(int)windowSize.Width}x{(int)windowSize.Height}";
+                    
+                    // 自动填充分辨率并设置为基准
+                    ResolutionComboBox.Text = actualResolution;
+                    _baseWidth = (int)windowSize.Width;
+                    _baseHeight = (int)windowSize.Height;
+                    
+                    MessageBox.Show($"已选择窗口: {processListWindow.SelectedWindow.Title}\n" +
+                                    $"进程: {processListWindow.SelectedWindow.ProcessName} (ID: {processListWindow.SelectedWindow.ProcessId})\n" +
+                                    $"分辨率: {actualResolution}", 
+                                    "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("无法获取所选窗口的句柄", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+        }
+
         #endregion
 
         #region 步骤管理
@@ -441,6 +515,20 @@ namespace AutoClickTool
                 {
                     WindowHelper.ClickWindowTitle(_targetWindowHandle);
                 }
+                
+                // 检查是否启用自适应分辨率
+                bool useAdaptiveResolution = AdaptiveResolutionCheckBox.IsChecked ?? false;
+                
+                // 如果启用自适应分辨率，获取当前窗口大小
+                int currentWidth = 0;
+                int currentHeight = 0;
+                
+                if (useAdaptiveResolution)
+                {
+                    Size windowSize = WindowHelper.GetWindowSize(_targetWindowHandle);
+                    currentWidth = (int)windowSize.Width;
+                    currentHeight = (int)windowSize.Height;
+                }
 
                 // 循环执行
                 for (int loop = 0; loop < loopCount; loop++)
@@ -488,9 +576,28 @@ namespace AutoClickTool
                                     });
                                     return;
                                 }
+                                
+                                // 如果启用自适应分辨率，并且有可用的基准分辨率，则计算缩放后的坐标
+                                int x = step.X;
+                                int y = step.Y;
+                                
+                                if (useAdaptiveResolution && step.BaseWidth > 0 && step.BaseHeight > 0)
+                                {
+                                    // 如果窗口大小发生了变化，重新获取
+                                    if (currentWidth <= 0 || currentHeight <= 0)
+                                    {
+                                        Size windowSize = WindowHelper.GetWindowSize(_targetWindowHandle);
+                                        currentWidth = (int)windowSize.Width;
+                                        currentHeight = (int)windowSize.Height;
+                                    }
+                                    
+                                    // 使用相对百分比计算实际坐标
+                                    x = step.GetScaledX(currentWidth);
+                                    y = step.GetScaledY(currentHeight);
+                                }
 
                                 // 执行点击
-                                WindowHelper.SimulateClick(_targetWindowHandle, step.X, step.Y, step.ClickType);
+                                WindowHelper.SimulateClick(_targetWindowHandle, x, y, step.ClickType);
 
                                 // 如果有多次循环，则等待全局间隔时间
                                 if (i < step.Loop - 1)
@@ -554,6 +661,90 @@ namespace AutoClickTool
                 });
             }
         }
+
+        /// <summary>
+        /// 开始录制按钮点击事件
+        /// </summary>
+        private void StartRecordingButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 验证窗口句柄
+            if (_targetWindowHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("请先选择目标窗口", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            
+            // 获取窗口标题
+            string windowTitle = WindowTitleTextBox.Text.Trim();
+            if (string.IsNullOrEmpty(windowTitle))
+            {
+                MessageBox.Show("未找到窗口标题，请重新选择窗口", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (StartRecordingButton.Content.ToString() == "开始录制")
+            {
+                // 开始录制
+                _recorder = new MouseRecorder(_targetWindowHandle);
+                _recorder.ActionRecorded += Recorder_ActionRecorded;
+                _recorder.StartRecording();
+                
+                // 更新UI
+                StartRecordingButton.Content = "停止录制";
+                StatusTextBlock.Text = "正在录制鼠标操作...";
+                
+                // 最小化当前窗口
+                this.WindowState = WindowState.Minimized;
+                
+                // 将焦点设置到目标窗口
+                WindowHelper.SetForeground(_targetWindowHandle);
+            }
+            else
+            {
+                // 停止录制
+                if (_recorder != null)
+                {
+                    _recorder.StopRecording();
+                    _recorder.ActionRecorded -= Recorder_ActionRecorded;
+                    _recorder = null;
+                }
+                
+                // 更新UI
+                StartRecordingButton.Content = "开始录制";
+                StatusTextBlock.Text = "录制已停止";
+                
+                // 恢复窗口
+                this.WindowState = WindowState.Normal;
+            }
+        }
+        
+        /// <summary>
+        /// 处理录制动作事件
+        /// </summary>
+        private void Recorder_ActionRecorded(object sender, RecordedAction action)
+        {
+            // 在UI线程中更新
+            Dispatcher.Invoke(() =>
+            {
+                // 将录制的操作转换为点击步骤
+                var step = action.ToClickStep(_steps.Count + 1);
+                
+                // 设置基准分辨率
+                step.BaseWidth = _baseWidth;
+                step.BaseHeight = _baseHeight;
+                step.UpdatePercentages();
+                
+                // 添加到步骤列表
+                _steps.Add(step);
+                
+                // 确保最新的步骤可见
+                if (StepsListView.Items.Count > 0)
+                {
+                    StepsListView.ScrollIntoView(StepsListView.Items[StepsListView.Items.Count - 1]);
+                }
+            });
+        }
+
         #endregion
     }
 }

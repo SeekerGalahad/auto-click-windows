@@ -25,11 +25,15 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 
                 <Label Grid.Row="0" Grid.Column="0" Content="窗口标题:" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="0" Grid.Column="1" x:Name="WindowTitleTextBox" Margin="5" VerticalContentAlignment="Center"/>
-                <Button Grid.Row="0" Grid.Column="2" x:Name="RefreshWindowsButton" Content="刷新窗口列表" Margin="5" Padding="5" Click="RefreshWindowsButton_Click"/>
+                <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal">
+                    <Button x:Name="RefreshWindowsButton" Content="刷新窗口列表" Margin="5" Padding="5" Click="RefreshWindowsButton_Click"/>
+                    <Button x:Name="ShowProcessListButton" Content="查看进程列表" Margin="5" Padding="5" Click="ShowProcessListButton_Click" ToolTip="查看当前运行的进程窗口列表"/>
+                </StackPanel>
                 
                 <Label Grid.Row="1" Grid.Column="0" Content="分辨率:" VerticalAlignment="Center"/>
                 <ComboBox Grid.Row="1" Grid.Column="1" x:Name="ResolutionComboBox" Margin="5" VerticalContentAlignment="Center" IsEditable="True">
@@ -40,6 +44,12 @@
                     <ComboBoxItem Content="3840x2160"/>
                 </ComboBox>
                 <Button Grid.Row="1" Grid.Column="2" x:Name="VerifyResolutionButton" Content="验证分辨率" Margin="5" Padding="5" Click="VerifyResolutionButton_Click"/>
+                
+                <!-- 自适应分辨率选项 -->
+                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="5">
+                    <CheckBox x:Name="AdaptiveResolutionCheckBox" Content="启用自适应分辨率" VerticalAlignment="Center" IsChecked="True" ToolTip="启用后，点击坐标会根据实际窗口分辨率自动调整"/>
+                    <Button x:Name="SetBaseResolutionButton" Content="设置当前分辨率为基准" Margin="10,0,0,0" Padding="5,2" Click="SetBaseResolutionButton_Click" ToolTip="使用当前窗口分辨率作为坐标的基准"/>
+                </StackPanel>
             </Grid>
         </GroupBox>
         
@@ -76,6 +86,7 @@
                     <Button x:Name="MoveUpButton" Content="上移" Margin="5,0" Padding="5" Click="MoveUpButton_Click"/>
                     <Button x:Name="MoveDownButton" Content="下移" Margin="5,0" Padding="5" Click="MoveDownButton_Click"/>
                     <Button x:Name="CaptureCoordinatesButton" Content="捕获坐标" Margin="5,0" Padding="5" Click="CaptureCoordinatesButton_Click"/>
+                    <Button x:Name="StartRecordingButton" Content="开始录制" Margin="5,0" Padding="5" Click="StartRecordingButton_Click" ToolTip="直接录制对目标窗口的鼠标点击操作，结果会显示在下方列表中"/>
                 </StackPanel>
                 
                 <ListView Grid.Row="1" x:Name="StepsListView" Margin="0,5,0,0">

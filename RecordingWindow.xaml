@@ -1,0 +1,52 @@
+<Window x:Class="AutoClickTool.RecordingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AutoClickTool"
+        mc:Ignorable="d"
+        Title="录制点击操作" Height="250" Width="450" WindowStartupLocation="CenterOwner"
+        Topmost="True" ResizeMode="NoResize" Loaded="Window_Loaded" Closed="Window_Closed">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0" TextWrapping="Wrap" Margin="0,0,0,10" FontWeight="Bold">
+            录制模式：当此窗口处于打开状态时，将记录您在目标窗口上的所有点击操作。
+        </TextBlock>
+        
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,5">
+            <TextBlock Text="目标窗口：" VerticalAlignment="Center"/>
+            <TextBlock x:Name="TargetWindowTextBlock" Text="未选择" VerticalAlignment="Center" Margin="5,0"/>
+        </StackPanel>
+        
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,5">
+            <TextBlock Text="录制状态：" VerticalAlignment="Center"/>
+            <TextBlock x:Name="StatusTextBlock" Text="准备就绪" VerticalAlignment="Center" Margin="5,0" FontWeight="Bold"/>
+        </StackPanel>
+        
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,5">
+            <TextBlock Text="已录制操作数：" VerticalAlignment="Center"/>
+            <TextBlock x:Name="ActionCountTextBlock" Text="0" VerticalAlignment="Center" Margin="5,0"/>
+        </StackPanel>
+        
+        <TextBlock Grid.Row="4" TextWrapping="Wrap" Margin="0,10">
+            按下开始录制按钮后，请切换到目标窗口进行点击操作。录制完成后请返回此窗口，点击停止录制。
+            <LineBreak/>
+            <LineBreak/>
+            提示：按Esc键可以停止录制并关闭此窗口。
+        </TextBlock>
+        
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button x:Name="StartButton" Content="开始录制" Width="100" Margin="5" Padding="5" Click="StartButton_Click"/>
+            <Button x:Name="StopButton" Content="停止录制" Width="100" Margin="5" Padding="5" Click="StopButton_Click" IsEnabled="False"/>
+            <Button x:Name="CancelButton" Content="取消" Width="100" Margin="5" Padding="5" Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window> 

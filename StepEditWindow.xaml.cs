@@ -100,31 +100,55 @@ namespace AutoClickTool
                 return;
             }
 
-            if (!int.TryParse(XCoordinateTextBox.Text, out int x) || !int.TryParse(YCoordinateTextBox.Text, out int y))
+            if (!int.TryParse(XCoordinateTextBox.Text, out int x) || x < 0)
             {
-                MessageBox.Show("坐标必须是有效的整数", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("X坐标必须是非负整数", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!int.TryParse(YCoordinateTextBox.Text, out int y) || y < 0)
+            {
+                MessageBox.Show("Y坐标必须是非负整数", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (!int.TryParse(DelayTextBox.Text, out int delay) || delay < 0)
             {
-                MessageBox.Show("延迟时间必须是有效的非负整数", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("延迟时间必须是非负整数", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            if (!int.TryParse(LoopTextBox.Text, out int loop) || loop <= 0)
+            if (!int.TryParse(LoopTextBox.Text, out int loop) || loop < 1)
             {
-                MessageBox.Show("循环次数必须是大于0的整数", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("循环次数必须大于0", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // 更新步骤数据
+            // 获取主窗口的基准分辨率
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            int baseWidth = 0;
+            int baseHeight = 0;
+            
+            if (mainWindow != null)
+            {
+                // 通过反射获取主窗口的基准分辨率
+                var baseWidthField = mainWindow.GetType().GetField("_baseWidth", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var baseHeightField = mainWindow.GetType().GetField("_baseHeight", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                
+                if (baseWidthField != null && baseHeightField != null)
+                {
+                    baseWidth = (int)baseWidthField.GetValue(mainWindow);
+                    baseHeight = (int)baseHeightField.GetValue(mainWindow);
+                }
+            }
+
+            // 更新步骤属性
             Step.Name = NameTextBox.Text;
             Step.X = x;
             Step.Y = y;
             Step.DelayBefore = delay;
             Step.Loop = loop;
-
+            
             // 设置点击类型
             switch (ClickTypeComboBox.SelectedIndex)
             {
@@ -141,8 +165,16 @@ namespace AutoClickTool
                     Step.ClickType = ClickType.MiddleClick;
                     break;
             }
+            
+            // 更新基准分辨率和坐标百分比
+            if (baseWidth > 0 && baseHeight > 0)
+            {
+                Step.BaseWidth = baseWidth;
+                Step.BaseHeight = baseHeight;
+                Step.UpdatePercentages();
+            }
 
-            // 关闭窗口
+            // 设置对话框结果为true并关闭
             DialogResult = true;
             Close();
         }
